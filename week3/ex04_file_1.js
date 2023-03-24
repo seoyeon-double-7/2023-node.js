@@ -3,6 +3,7 @@ const fs = require('fs');
 let readData = "읽어오지 못했습니다.";
 
 fs.readFile("./readText.txt", (err, data)=>{
+    // 문제가 생기면 err에 값이 들어옴
     if(err){
         throw err;
     }
