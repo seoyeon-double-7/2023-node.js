@@ -50,14 +50,22 @@ const server = http.createServer(async (req, res) => {
 
     const pathname = url.parse(req.url, true).pathname;
     let subContent = "";
-    let title = ""
+    let title = "";
     if (pathname == "/create") {
       subContent = `<form action="create_process" method="post">
         <p><input type="text" name="title" placeholder="title"/></p>
         <p><textarea name="description" placeholder="description"></textarea></p>
         <p><input type="submit"/> </p>
       </form>`;
+    }else if(pathname == '/update'){
+      subContent = `<form action="update_process" method="post">
+        <input type = "hidden" name="id" value="${param_date}"/>
+        <p><input type="text" name="title" placeholder="title" value="${param_date}"/></p>
+        <p><textarea name="description" placeholder="description">${fileData}</textarea></p>
+        <p><input type="submit"/> </p>
+      </form>`;
     }
+     
 
     const template = `
         <!DOCTYPE html>
@@ -73,14 +81,56 @@ const server = http.createServer(async (req, res) => {
                 ${fileDataString}
                 <br>
                 <a href="create">create</a>
-                <a href="/update?id=${title}">update</a>
+                <a href="/update?data=${param_date}">update</a>
                 ${subContent}
             </body>
         </html>
         `;
 
-    res.writeHead(200, { "Content-Type": "text/html;charset=utf-8" });
-    res.end(template);
+    if (pathname == "/create_process") {
+      let body = "";
+      req.on("data", function (data) {
+        body += data; // 데이터 누적
+      });
+      req.on("end", function () {
+        const post = qs.parse(body); // 객체화 시켜서 편하게 쓸 수 있음
+        const title = post.title; //파일 제목
+        const description = post.description;
+        fs.writeFile(
+          path.join(__dirname, `./textFile/menu_${title}.txt`),
+          description,
+          "utf-8",
+          function (err) {}
+        );
+        console.log("내용", post);
+
+        // 글 작성 후 해당 내용을 볼 수 있도록 링크로 이동
+      res.writeHead(302, {Location: `/?data=${encodeURIComponent(title)}`});
+      res.end();
+      });
+    }else if(pathname == '/update_process'){
+      let body  = '';
+      req.on('data', function(data){
+        body += body+data;
+      });
+
+      req.on('end', async function(){
+        const post = qs.parse(body);
+        const id = post.id;
+        const title = post.title;
+        const description = post.description;
+        await fs.rename(`textFile/menu_${id}.txt`, `textFile/menu_${title}.txt`);
+        await fs.writeFile(`textFile/menu_${title}.txt`, description, 'utf-8');
+        res.writeHead(302, {Location: `/?data=${encodeURIComponent(title)}`});
+        res.end();
+
+      })
+    }else{
+      res.writeHead(200, {'Content-Type' : 'text/html; charset=utf-8'});
+      res.end(template);
+    }
+
+    
   } catch (err) {
     console.error(err);
     res.writeHead(500, { "Content-Type": "text/plain;charset=utf-8" });
