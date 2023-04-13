@@ -2,7 +2,7 @@ const { text_odd, text_even } = require("./moduleText");
 const checkNumberFunc = require("./moduleFunc");
 
 function checkStringOddOrEven(str){
-    if(str.length % 2){
+    if(str.length % 2){ // 홀수
         return text_odd;
     }
     return text_even;

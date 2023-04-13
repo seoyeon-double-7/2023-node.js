@@ -92,17 +92,16 @@ const server = http.createServer(async (req, res) => {
       req.on("data", function (data) {
         body += data; // 데이터 누적
       });
-      req.on("end", function () {
+      req.on("end", async function () {
         const post = qs.parse(body); // 객체화 시켜서 편하게 쓸 수 있음
         const title = post.title; //파일 제목
-        const description = post.description;
-        fs.writeFile(
+        const description = post.description
+        await fs.writeFile(
           path.join(__dirname, `./textFile/menu_${title}.txt`),
           description,
           "utf-8",
           function (err) {}
         );
-        console.log("내용", post);
 
         // 글 작성 후 해당 내용을 볼 수 있도록 링크로 이동
       res.writeHead(302, {Location: `/?data=${encodeURIComponent(title)}`});
@@ -119,7 +118,8 @@ const server = http.createServer(async (req, res) => {
         const id = post.id;
         const title = post.title;
         const description = post.description;
-        await fs.rename(`textFile/menu_${id}.txt`, `textFile/menu_${title}.txt`);
+        await fs.rename(path.join(__dirname, `textFile/menu_${id}.txt`)
+                ,path.join(__dirname, `textFile/menu_${title}.txt`));
         await fs.writeFile(`textFile/menu_${title}.txt`, description, 'utf-8');
         res.writeHead(302, {Location: `/?data=${encodeURIComponent(title)}`});
         res.end();
