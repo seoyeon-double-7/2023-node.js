@@ -136,10 +136,10 @@ const server = http.createServer(async (req, res) => {
       });
       req.on("end", async function () {
         const post = qs.parse(body);
-        const id = post.id;
+        const id = post.id; // id값 저장
         console.log("KK", id);
-        await fs.unlink(path.join(__dirname, `textFile/menu_${id}.txt`));
-        res.writeHead(302, { Location: "/" });
+        await fs.unlink(path.join(__dirname, `textFile/menu_${id}.txt`)); // 파일 삭제
+        res.writeHead(302, { Location: "/" });  // 성공하면 메인화면으로 이동
         res.end();
       });
     } else {
