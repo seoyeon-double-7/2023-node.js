@@ -57,7 +57,7 @@ const server = http.createServer(async (req, res) => {
         <p><textarea name="description" placeholder="description"></textarea></p>
         <p><input type="submit"/> </p>
       </form>`;
-    }else if(pathname == '/update'){
+    } else if (pathname == "/update") {
       subContent = `<form action="update_process" method="post">
         <input type = "hidden" name="id" value="${param_date}"/>
         <p><input type="text" name="title" placeholder="title" value="${param_date}"/></p>
@@ -65,7 +65,6 @@ const server = http.createServer(async (req, res) => {
         <p><input type="submit"/> </p>
       </form>`;
     }
-     
 
     const template = `
         <!DOCTYPE html>
@@ -80,8 +79,12 @@ const server = http.createServer(async (req, res) => {
                 <br>
                 ${fileDataString}
                 <br>
-                <a href="create">create</a>
-                <a href="/update?data=${param_date}">update</a>
+                <input type="button" value="create" onclick='location.href="/create"'>
+                <input type="button" value="update" onclick='location.href="/update?data=${param_date}"'>
+                <form action="delete_process" method="post">
+                <input type="hidden" name="id" value="${param_date}">
+                  <input type="submit" value="delete">
+                </form>
                 ${subContent}
             </body>
         </html>
@@ -95,7 +98,7 @@ const server = http.createServer(async (req, res) => {
       req.on("end", async function () {
         const post = qs.parse(body); // 객체화 시켜서 편하게 쓸 수 있음
         const title = post.title; //파일 제목
-        const description = post.description
+        const description = post.description;
         await fs.writeFile(
           path.join(__dirname, `./textFile/menu_${title}.txt`),
           description,
@@ -104,33 +107,45 @@ const server = http.createServer(async (req, res) => {
         );
 
         // 글 작성 후 해당 내용을 볼 수 있도록 링크로 이동
-      res.writeHead(302, {Location: `/?data=${encodeURIComponent(title)}`});
-      res.end();
+        res.writeHead(302, { Location: `/?data=${encodeURIComponent(title)}` });
+        res.end();
       });
-    }else if(pathname == '/update_process'){
-      let body  = '';
-      req.on('data', function(data){
-        body += body+data;
+    } else if (pathname == "/update_process") {
+      let body = "";
+      req.on("data", function (data) {
+        body += body + data;
       });
 
-      req.on('end', async function(){
+      req.on("end", async function () {
         const post = qs.parse(body);
         const id = post.id;
         const title = post.title;
         const description = post.description;
-        await fs.rename(path.join(__dirname, `textFile/menu_${id}.txt`)
-                ,path.join(__dirname, `textFile/menu_${title}.txt`));
-        await fs.writeFile(`textFile/menu_${title}.txt`, description, 'utf-8');
-        res.writeHead(302, {Location: `/?data=${encodeURIComponent(title)}`});
+        await fs.rename(
+          path.join(__dirname, `textFile/menu_${id}.txt`),
+          path.join(__dirname, `textFile/menu_${title}.txt`)
+        );
+        await fs.writeFile(`textFile/menu_${title}.txt`, description, "utf-8");
+        res.writeHead(302, { Location: `/?data=${encodeURIComponent(title)}` });
         res.end();
-
-      })
-    }else{
-      res.writeHead(200, {'Content-Type' : 'text/html; charset=utf-8'});
+      });
+    } else if (pathname == "/delete_process") {
+      let body = "";
+      req.on("data", function (data) {
+        body += body + data;
+      });
+      req.on("end", async function () {
+        const post = qs.parse(body);
+        const id = post.id;
+        console.log("KK", id);
+        await fs.unlink(path.join(__dirname, `textFile/menu_${id}.txt`));
+        res.writeHead(302, { Location: "/" });
+        res.end();
+      });
+    } else {
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
       res.end(template);
     }
-
-    
   } catch (err) {
     console.error(err);
     res.writeHead(500, { "Content-Type": "text/plain;charset=utf-8" });
