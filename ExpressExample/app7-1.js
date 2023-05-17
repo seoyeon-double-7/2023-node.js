@@ -18,11 +18,11 @@ app.set('port', process.env.PORT || 3000);
 app.use(bodyParser.urlencoded({extended:false}));
 
 app.use(bodyParser.json());
-app.use('/', static(path.join(__dirname, 'public')));
+app.use('/public', static(path.join(__dirname, 'public')));
 //app.use(static(path.join(__dirname, 'public')));
 
 //미들웨어에서 파라미터 확인
-app.use(function(req,res,next){
+app.use(function(req,res){
     console.log('첫번째 미들웨어에서 요청 처리');
 
     var paramId = req.body.id || req.query.id;
@@ -33,6 +33,7 @@ app.use(function(req,res,next){
     res.write(`<div>param id: ${paramId}</div>`);
     res.write(`<div>param pw: ${paramPassword}</div>`);
     res.end();
+    // res.redirect('/');
 })
 
 //Express 서버 시작
