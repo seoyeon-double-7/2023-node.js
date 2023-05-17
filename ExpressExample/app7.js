@@ -2,8 +2,11 @@
 var http = require('http');
 var express = require('express');
 
-//express 미들웨어
+// express 미들웨어
+// bodyParser : 클라이언트인 html파일에서 서버로 보낼데이터를 파싱
 var bodyParser = require('body-parser');
+
+// static 미들웨어 : 특정 폴더의 파일들을 특정 패스로 접근할 수 있도록 열어주는 역할을 함
 var static = require('serve-static');
 var path = require('path');
 
@@ -15,8 +18,7 @@ app.set('port', process.env.PORT || 3000);
 app.use(bodyParser.urlencoded({extended:false}));
 
 app.use(bodyParser.json());
-// 상위 디렉토리부터 public까지 접근
-app.use('/public', static(path.join(__dirname, 'public')));
+app.use('/', static(path.join(__dirname, 'public')));
 //app.use(static(path.join(__dirname, 'public')));
 
 //미들웨어에서 파라미터 확인
@@ -27,9 +29,9 @@ app.use(function(req,res,next){
     var paramPassword = req.body.password || req.query.password;
 
     res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
-    res.write(`express 서버에서 응답함`);
-    res.write(`param id: ${{paramId}}`);
-    res.write(`param pw: ${paramPassword}`);
+    res.write(`<h1>express 서버에서 응답함</h1>`);
+    res.write(`<div>param id: ${{paramId}}</div>`);
+    res.write(`<div>param pw: ${paramPassword}</div>`);
     res.end();
 })
 

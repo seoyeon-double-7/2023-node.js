@@ -27,7 +27,7 @@ app.use(function(req, res, next){
     // var personStr = JSON.stringify(person);
     // res.writeHead('200', {'Content-Type':'text/html; charset=utf8'});
     // res.end(personStr);
-
+    
     // 실습5 o
     // var person = {name:'백지민', age:20};
     // var personStr = JSON.stringify(person);
@@ -45,7 +45,7 @@ app.use(function(req, res, next){
     //실습8 o
     // req.user = 'sunny';
     // res.send(`<h1>Express 서버에서 ${req.user}를 send로 응답한 결과입니다.</h1>`)
-
+    
     //실습9
     // var filename = 'house.png';
     // fs.readFile(filename, function(err, data){
