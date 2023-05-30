@@ -122,5 +122,5 @@ app.use(errorHandler);
 
 //Express 서버 시작
 http.createServer(app).listen(3000, function () {
-  console.log("Express 서버가 3000번 포트에서 시작됨 http://localhost:3000/");
+  console.log("Express 서버가 3000번 포트에서 시작됐어요이 http://localhost:3000/");
 });
