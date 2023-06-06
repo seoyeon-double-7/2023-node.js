@@ -50,8 +50,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 // public 폴더와 uploads 폴더 오픈
-app.use("/public", static(path.join(__dirname, "public")));
-app.use("/uploads", static(path.join(__dirname, "uploads")));
+app.use(static(path.join(__dirname, "uploads")));
+app.use(static(path.join(__dirname, "public")));
 
 // cookie-parser 설정
 app.use(cookieParser());
@@ -108,7 +108,6 @@ router
 
     try {
       var files = req.files;
-      console.log("dfjalfaj");
 
       //현재의 파일 정보를 저장할 변수 선언
       var originalname = "",
@@ -131,7 +130,7 @@ router
           );
 
           //클라이언트에 응답 전송
-          res.write("<h3>파일 업로드 성공</h3>");
+          res.write(`<h3>배서연님 ${index+1} 번째 파일 업로드 성공</h3>`);
           res.write("<hr>");
           res.write(
             `<p>원본파일명: ${originalname} -> 저장 파일명: ${filename}</p>`
@@ -140,88 +139,24 @@ router
           res.write(`<p>파일 크기: ${size}</p>`);
           res.end();
         }
-        res.write(
-          "<br><br><button type = button><a href='/process/product'>상품 페이지로 이동하기</a></button>"
-        );
       }
     } catch (err) {
       console.dir(err.stack);
-    } //try-catch-end
-  }); //router.route('/process/photo')-end
-
-// 로그인 라우팅 함수 - 로그인 후 세션 저장
-router.route("/process/login").post(function (req, res) {
-  console.log("process/login 호출됨.");
-
-  var paramId = req.body.id || req.query.id;
-  var paramPassword = req.body.password || req.query.password;
-
-  if (req.session.user) {
-    // 로그인 된 상태
-    console.log("이미 로그인 되어 상품 페이지로 이동합니다.");
-    res.redirect("/product.html");
-  } else {
-    // 세션 저장
-    req.session.user = {
-      id: paramId,
-      name: "Cindy",
-      authorized: true,
-    };
-
-    res.writeHead("200", { "Content-Type": "text/html; charset=utf8" });
-    res.write("<h1>로그인 성공</h1>");
-    res.write("<div><p>Param id : " + paramId + "</p></div>");
-    res.write("<div><p>Param password : " + paramPassword + "</p></div>");
-    res.write(
-      "<br><br><a href='/process/product'>상품 페이지로 이동하기</a>"
-    );
-    // router.route('/process/product').get으로 연결됨
-    res.end();
-  }
-});
-
-router.route("/process/logout").get(function (req, res) {
-  console.log("/process/logout 호출됨.");
-  if (req.session.user) {
-    // 로그인된 상태
-    console.log("로그아웃합니다.");
-    req.session.destroy(function (err) {
-      if (err) {
-        throw err;
-      }
-      console.log("세션을 삭제하고 로그아웃되었습니다.");
-      res.redirect("/login2.html");
-    });
-  } else {
-    // 로그인 안된 상태
-    console.log("아직 로그인되어있지 않습니다.");
-    res.redirect("/login2.html");
-  }
-});
-
-router.route("/process/product").get(function (req, res) {
-  console.log("/process/product 호출됨.");
-  // 로그인 되어있으면
-  if (req.session.user) {
-    res.redirect("/product.html");
-  } else {
-    res.redirect("/login2.html");
-  }
-});
-
+    } 
+  });
 
 
 app.use("/", router);
 
 // 404 에러 페이지 처리
-// var errorHandler = expressErrorHandler({
-//   static: {
-//     404: "./public/404.html",
-//   },
-// });
+var errorHandler = expressErrorHandler({
+  static: {
+    404: "./public/404.html",
+  },
+});
 
-// app.use(expressErrorHandler.httpError(404));
-// app.use(errorHandler);
+app.use(expressErrorHandler.httpError(404));
+app.use(errorHandler);
 
 // Express 서버 시작
 http.createServer(app).listen(app.get("port"), function () {
