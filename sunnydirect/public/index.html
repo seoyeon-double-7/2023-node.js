@@ -14,6 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.0/themes/Redmond/jquery-ui.css" />
+    <link rel="stylesheet" href="stylesheets/style.css">
     <script type="text/javascript" src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
     <!-- <script src="https://maps.google.com/maps/api/js?key=AIzaSyA7nnoG8FxJ8CcMFYcE_isUIH-GUFvu4jA">
     </script> 최상위 메뉴에서 지도를 사용하면 링크로 연결된 아래메뉴의 지도실행이 중복이 되어 실행이 안됨-->
@@ -27,7 +28,8 @@
     .fakeimg {
         height: 250px;
         width:100%;
-        background: rgb(202, 227, 228);
+        background: rgb(69, 188, 192);
+        color: white;
         border-radius: 7px;
         padding: 10px 15px;
         margin-top: 10px;
@@ -46,7 +48,25 @@
   <body>
       <!--제목-->
     <div style="margin-top:30px; margin-bottom: 30px;"  align="center">
-      <font color="blue" size="5">Seoyeon's WebSite</font>
+      <div class="waviy">
+        <span style="--i:1">S</span>
+        <span style="--i:2">e</span>
+        <span style="--i:3">o</span>
+        <span style="--i:4">y</span>
+        <span style="--i:5">e</span>
+        <span style="--i:6">o</span>
+        <span style="--i:7">n</span>
+        <span style="--i:8">'</span>
+        <span style="--i:9">s</span>
+        <span style="--i:10"> </span>
+        <span style="--i:11">W</span>
+        <span style="--i:12">e</span>
+        <span style="--i:13">b</span>
+        <span style="--i:14">s</span>
+        <span style="--i:15">i</span>
+        <span style="--i:16">t</span>
+        <span style="--i:17">e</span>
+    </div>
       <button type="button" class="btn btn-outline-primary btn-sm">&nbsp;<a href="login2.html" data-toggle="popover" data-trigger="hover" data-content="로그인후 사용하세요" >리뷰 달기</a></button>
     </div>
       <!--메뉴버튼-->
@@ -70,7 +90,7 @@
           <a class="nav-link" href="board.html">게시판</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="map3400.html">지도에서 위치 검색</a>
+          <a class="nav-link" href="jquery2/sunny.html">달력</a>
         </li>
         </ul>
       </div>
@@ -84,7 +104,7 @@
             <h2>About Me</h2>
             <font size=3>Photo of me:</font>
 
-            <img src="imgs/profile.png" alt="John Doe" class="mr-3 mt-3 Thumbnail" top-magrin: style="width:150px;" >
+            <img src="imgs/profile.png" alt="John Doe" class="rounded-circle Thumbnail"top-magrin: style="width:150px;" >
             <h5>배서연</h5>
             메일 정보: <a href="mailto:s2103@e-mirim.hs.kr">
             s2103@e-mirim.hs.kr</a>.<p>
@@ -93,7 +113,7 @@
             <font size=3>application을 추가하여 보세요</font>
             <ul class="nav nav-pills flex-column">
               <li class="nav-item">
-                <a class="nav-link active" href="calculator.html" data-toggle="popover" data-content="계산하는 프로그램">계산기</a>
+                <a class="nav-link active " href="calculator.html" data-toggle="popover" data-content="계산하는 프로그램">계산기</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="midwav.html">오디오실행</a>
@@ -165,7 +185,7 @@
           </div>
       </div>
 
-      <br><br><br>
+      <br><hr><br><br>
       <div class="row">
         <!--왼쪽내용-->
           <div class="col-sm-4">
