@@ -1,8 +1,6 @@
 /**
  * 데이터베이스 사용하기
- * 
  * 몽고디비에 사용자 추가하기
- 
  * 웹브라우저에서 아래 주소의 페이지를 열고 웹페이지에서 요청
  *    http://localhost:3000/public/adduser.html
  */
@@ -54,26 +52,30 @@ app.use(
   })
 );
 
-//===== 데이터베이스 연결 =====//
+// 데이터베이스에 연결 - 버젼업되어 업그레이드(5xx)-app.js
 
 // 데이터베이스 객체를 위한 변수 선언
-var database;
+let database;
 
-//데이터베이스에 연결
-function connectDB() {
+// 데이터베이스에 연결
+async function connectDB() {
   // 데이터베이스 연결 정보
-  var databaseUrl = "mongodb://localhost:27017/local";
+  const databaseUrl = "mongodb://127.0.0.1:27017/local";
 
-  // 데이터베이스 연결
-  MongoClient.connect(databaseUrl, function (err, db) {
-    if (err) throw err;
+  // MongoClient 생성자 옵션
+  const options = { useUnifiedTopology: true };
 
+  try {
+    // 데이터베이스 연결
+    const client = new MongoClient(databaseUrl, options);
+    await client.connect();
     console.log("데이터베이스에 연결되었습니다. : " + databaseUrl);
 
     // database 변수에 할당
-    database = db.db("local"); /*database명을 명시했다.*/
-    // database = db;
-  });
+    database = client.db("local");
+  } catch (err) {
+    throw err;
+  }
 }
 
 //===== 라우팅 함수 등록 =====//
@@ -130,12 +132,18 @@ router.route("/process/login").post(function (req, res) {
 });
 
 // 사용자 추가 라우팅 함수 - 클라이언트에서 보내오는 데이터를 이용해 데이터베이스에 추가
-
 router.route("/process/adduser").post(function (req, res) {
   console.log("/process/adduser 호출됨.");
+
   var paramId = req.body.id || req.query.id;
   var paramPassword = req.body.password || req.query.password;
   var paramName = req.body.name || req.query.name;
+
+  console.log(
+    "요청 파라미터 : " + paramId + ", " + paramPassword + ", " + paramName
+  );
+
+  // 데이터베이스 객체가 초기화된 경우, addUser 함수 호출하여 사용자 추가
   if (database) {
     addUser(
       database,
@@ -146,36 +154,41 @@ router.route("/process/adduser").post(function (req, res) {
         if (err) {
           throw err;
         }
+
         // 결과 객체 확인하여 추가된 데이터 있으면 성공 응답 전송
         if (result && result.insertedCount > 0) {
           console.dir(result);
+
           res.writeHead("200", { "Content-Type": "text/html;charset=utf8" });
           res.write("<h2>사용자 추가 성공</h2>");
+          res.end();
+        } else {
+          // 결과 객체가 없으면 실패 응답 전송
+          res.writeHead("200", { "Content-Type": "text/html;charset=utf8" });
+          res.write("<h2>사용자 추가  실패</h2>");
           res.end();
         }
       }
     );
+  } else {
+    // 데이터베이스 객체가 초기화되지 않은 경우 실패 응답 전송
+    res.writeHead("200", { "Content-Type": "text/html;charset=utf8" });
+    res.write("<h2>데이터베이스 연결 실패</h2>");
+    res.end();
   }
 });
 
 // 라우터 객체 등록
 app.use("/", router);
 
-// 사용자를 인증하는 함수
-var authUser = function (database, id, password, callback) {
-  console.log("authUser 호출됨 : " + id + ", " + password);
-
-  // users 컬렉션 참조
-  var users = database.collection("users");
-
-  // 아이디와 비밀번호를 이용해 검색
-  users.find({ id: id, password: password }).toArray(function (err, docs) {
-    if (err) {
-      // 에러 발생 시 콜백 함수를 호출하면서 에러 객체 전달
-      callback(err, null);
-      return;
-    }
-
+// 사용자 인증하는 함수 - 버젼업되어 업그레이드(5xx)-app.js
+async function authUser(database, id, password, callback) {
+  try {
+    console.log("authUser 호출됨 : " + id + ", " + password);
+    // users 컬렉션 참조
+    var users = database.collection("users");
+    var docs = await users.find({ id: id, password: password }).toArray();
+    // console.log(docs);
     if (docs.length > 0) {
       // 조회한 레코드가 있는 경우 콜백 함수를 호출하면서 조회 결과 전달
       console.log(
@@ -184,36 +197,44 @@ var authUser = function (database, id, password, callback) {
         password
       );
       callback(null, docs);
+      return;
     } else {
       // 조회한 레코드가 없는 경우 콜백 함수를 호출하면서 null, null 전달
       console.log("일치하는 사용자를 찾지 못함.");
       callback(null, null);
+      return;
     }
-  });
-};
+  } catch (err) {
+    console.error("데이터베이스 연결에 실패했습니다:", err);
+    // throw err;
+  }
+}
 
-//사용자를 추가하는 함수
-var addUser = function (database, id, password, name, callback) {
-  console.log("addUser 호출됨.");
-  var users = database.collection("users");
-  // id, password, username을 사용해 사용자 추가
-  users.insertMany(
-    [{ id: id, password: password, name: name }],
-    function (err, result) {
-      if (err) {
-        // 오류가 발생했을 때 콜백 함수를 호출하면서 오류 객체 전달
-        callback(err, null);
-        return;
-      }
-      if (result.insertedCount > 0) {
-        console.log("사용자 레코드 추가됨 : " + result.insertedCount);
-      } else {
-        console.log("추가된 레코드가 없음.");
-      }
+//사용자 추가하는 함수 - 버젼업되어 업그레이드(5xx)-app2.js<<<추가
+async function addUser(database, id, password, name, callback) {
+  try {
+    console.log("addUser 호출됨 : " + id + ", " + password + ", " + name);
+
+    // users 컬렉션 참조
+    var users = database.collection("users");
+
+    // id, password, username을 이용해 사용자 추가
+    var result = await users.insertMany([
+      { id: id, password: password, name: name },
+    ]);
+
+    // 에러 아닌 경우, 콜백 함수를 호출하면서 결과 객체 전달
+    if (result.insertedCount > 0) {
+      console.log("사용자 레코드 추가됨 : " + result.insertedCount);
       callback(null, result);
+      return;
+    } else {
+      console.log("추가된 레코드가 없음.");
     }
-  );
-};
+  } catch (err) {
+    console.log("일치하는 사용자를 찾지 못함.", err);
+  }
+}
 
 // 404 에러 페이지 처리
 var errorHandler = expressErrorHandler({

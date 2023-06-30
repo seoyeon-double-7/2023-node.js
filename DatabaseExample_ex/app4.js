@@ -6,8 +6,9 @@
  * 웹브라우저에서 아래 주소의 페이지를 열고 웹페이지에서 요청
  * (먼저 사용자 추가 후 로그인해야 함)
  *    http://localhost:3000/public/login.html
- *    http://localhost:3000/public/adduser2.html
+ *    http://localhost:3000/public/adduser.html
  */
+
 
 // Express 기본 모듈 불러오기
 var express = require('express')
@@ -72,47 +73,48 @@ var UserModel;
 //데이터베이스에 연결
 function connectDB() {
 	// 데이터베이스 연결 정보
-	var databaseUrl = 'mongodb://localhost:27017/local';
+	var databaseUrl = 'mongodb://127.0.0.1:27017/local';
 	 
 	// 데이터베이스 연결
     console.log('데이터베이스 연결을 시도합니다.');
     mongoose.Promise = global.Promise;  // mongoose의 Promise 객체는 global의 Promise 객체 사용하도록 함
-	mongoose.connect(databaseUrl);
-	database = mongoose.connection;
-	
-	database.on('error', console.error.bind(console, 'mongoose connection error.'));	
-	database.on('open', function () {
+		mongoose.connect(databaseUrl);
+		database = mongoose.connection;
+		
+		database.on('error', console.error.bind(console, 'mongoose connection error.'));	
+		database.on('open', function () {
 		console.log('데이터베이스에 연결되었습니다. : ' + databaseUrl);
 		
         
 		// 스키마 정의
-		
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		
-		
+		// 스키마 정의
+		UserSchema = mongoose.Schema({
+			id: {type: String, required: true, unique: true},
+			password: {type: String, required: true},
+			name: {type: String, index: 'hashed'},
+			age: {type: Number, 'default': -1},
+			created_at: {type: Date, index: {unique: false}, 'default': Date.now},
+			updated_at: {type: Date, index: {unique: false}, 'default': Date.now}
 	});
+	
+	// 스키마에 static으로 findById 메소드 추가
+	UserSchema.static('findById', function(id, callback) {
+		return this.find({id:id}, callback);
+	});
+	
+			// 스키마에 static으로 findAll 메소드 추가
+	UserSchema.static('findAll', function(callback) {
+		return this.find({}, callback);
+	});
+	
+	console.log('UserSchema 정의함.');
+	
+	// UserModel 모델 정의
+	UserModel = mongoose.model("users2", UserSchema);
+	console.log('UserModel 정의함.');
+	
+	
+});
 	
     // 연결 끊어졌을 때 5초 후 재연결
 	database.on('disconnected', function() {
@@ -233,118 +235,100 @@ router.route('/process/adduser').post(function(req, res) {
 
 
 
-//사용자 리스트 함수
+//사용자조회함수 추가<<<추가app4.js
+router.route('/process/listuser').post(async function(req, res) {
+	console.log('/process/listuser 호출됨.');
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	// 데이터베이스 객체가 초기화된 경우, 모델 객체의 findAll 메소드 호출
+	if (database) {
+		// 1. 모든 사용자 검색
+		try {
+			const results = await UserModel.findAll();
+		  
+			if (results) {  // 결과 객체 있으면 리스트 전송
+				console.dir(results);
+ 
+				res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
+				res.write('<h2>사용자 리스트</h2>');
+				res.write('<div><ul>');
+				
+				for (var i = 0; i < results.length; i++) {
+					var curId = results[i]._doc.id;
+					var curName = results[i]._doc.name;
+					res.write('    <li>#' + i + ' : ' + curId + ', ' + curName + '</li>');
+				}	
+			
+				res.write('</ul></div>');
+				res.end();
+			} else {  // 결과 객체가 없으면 실패 응답 전송
+				res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
+				res.write('<h2>사용자 리스트 조회  실패</h2>');
+				res.end();
+		}
+		} catch (err) {
+			console.error('사용자 리스트 조회 중 에러 발생 : ' + err.stack);
+			res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
+			res.write('<h2>사용자 리스트 조회 중 에러 발생</h2>');
+			res.write('<p>' + err.stack + '</p>');
+			res.end();
+			return;
+		}
+	}
+});
 
 
 // 라우터 객체 등록
 app.use('/', router);
 
 
-
-
+//authUser(database, paramId, paramPassword, function(err, docs) {
 // 사용자를 인증하는 함수 : 아이디로 먼저 찾고 비밀번호를 그 다음에 비교하도록 함
+//몽구스 db model 사용에 따라 authUser(사용자인증함수) 변경 - app4.js
+//사용자를 인증하는 함수 - 몽구스, app4.js(findById)
+async function authUser(database, id, password, callback) {
+	try {
+		console.log('authUser 호출됨 : ' + id + ', ' + password);
+		// var users = database.collection('users');
+		var docs = await UserModel.findById(id);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//사용자를 추가하는 함수
-var addUser = function(database, id, password, name, callback) {
-	console.log('addUser 호출됨 : ' + id + ', ' + password + ', ' + name);
-	
-	// UserModel 인스턴스 생성
-	var user = new UserModel({"id":id, "password":password, "name":name});
-
-	// save()로 저장 : 저장 성공 시 addedUser 객체가 파라미터로 전달됨
-	user.save(function(err, addedUser) {
-		if (err) {
-			callback(err, null);
+		if (docs.length > 0) {  // 조회한 레코드가 있는 경우 콜백 함수를 호출하면서 조회 결과 전달
+			console.log('아이디 [%s], 패스워드 [%s] 가 일치하는 사용자 찾음.', id, password);
+			callback(null, docs);
+			return;
+		} else {  // 조회한 레코드가 없는 경우 콜백 함수를 호출하면서 null, null 전달
+			console.log("일치하는 사용자를 찾지 못함.");
+			callback(null, null);
 			return;
 		}
-		
-	    console.log("사용자 데이터 추가함.");
-	    callback(null, addedUser);
-	     
-	});
-};
+  } catch (err) {
+    console.error('데이터베이스 연결에 실패했습니다:', err);
+    // throw err;
+  }
+}
 
+
+//몽구스 db 사용에 따라 adduser(사용자추가함수) 변경 - app3.js
+async function addUser(database, id, password, name, callback) {
+	try {
+		console.log('addUser 호출됨 : ' + id + ', ' + password + ', ' + name);
+
+		// UserModel 인스턴스 생성
+		var user = new UserModel({"id":id, "password":password, "name":name});
+
+		// save()로 저장 : 저장 성공 시 addedUser 객체가 파라미터로 전달됨
+		var addedUser = await user.save(addedUser);
+
+		if (user) {
+			console.log("사용자 데이터 추가함.");
+			callback(null, addedUser);
+		} else {
+			console.log("사용자 데이터 추가하지 못함.");
+			callback(null, null);
+		}
+	} catch (err) {
+		console.log(err);
+	}
+}
 
 // 404 에러 페이지 처리
 var errorHandler = expressErrorHandler({
@@ -380,4 +364,3 @@ http.createServer(app).listen(app.get('port'), function(){
   connectDB();
    
 });
-
